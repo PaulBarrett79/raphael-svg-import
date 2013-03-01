@@ -100,6 +100,80 @@ Raphael.fn.importSVG = function (raw_svg,node_cb) {
           if (node_cb) { node_cb(shape) }
         }
       });
+	  
+	  //TEXT SUPPORT
+	  //adds a Raphael text node with an ID of the text within the node.
+	  //this currently assumes input is from Inkscape (tspan is not SVG standards compliant)
+	  //TODO account for SVG standards file or from Illustrator etc.
+	  if (node=="text") {
+	     
+		raw_svg.scan(new RegExp("<text(.*?)<\/text>","igm"), function(match) {
+		    var attr = { "stroke-width": 0, "fill":"#fff" };
+			var shape = null;
+			var texttouse = "";
+			if (match && typeof(match) == 'object' && match[1]) {
+				var style = null;
+				match[1].scan(/([a-z\-]+)="(.*?)"/, function(m) {
+					switch(m[1]) {
+					case "stroke-dasharray":
+					  attr[m[1]] = "- ";
+					  break;
+					case "style":
+					  style = m[2];
+					  break;
+					default:
+					  attr[m[1]] = m[2];
+					  break;
+					}
+				});
+				
+				match[1].scan(/([^>]+)<\/tspan>$/, function(m) {
+				
+					texttouse = m[1];
+				});
+				
+
+				if (style) {
+				style.scan(/([a-z\-]+) ?: ?([^ ;]+)[ ;]?/, function(m) {
+				  if(m[1] == "text-anchor") {
+				    attr[m[1]] = "start";
+				  }
+				  else {
+				    attr[m[1]] = m[2];
+				  }
+				});
+				}
+			}
+			
+			//custom text adding code here
+			var txt = self.text(attr["x"],attr["y"],texttouse);
+			//need to apply correct transform matrices i.e. add values from svg element to existing matrix
+			var tform  = attr["transform"];
+			if(tform) {
+				tform.scan(/matrix\((.*)\)/, function(w) {
+					//w[0] is whole string
+					//w[1] is coords - split by , 
+					var wArray = w[1].split(",");
+					tformMat = Raphael.matrix(wArray[0],wArray[1],wArray[2],wArray[3],wArray[4],wArray[5]);
+					var tformStr = tformMat.toTransformString();
+					txt.transform(tformStr);
+					
+				});
+			}
+			
+			//ID set twice so it is visible to both Raphael and jQuery
+			txt.node.setAttribute("text-anchor", "start");
+			txt.node.setAttribute("id", texttouse);
+			txt.attr({'text-anchor': 'start'});
+			txt.id = texttouse;
+			
+			if (shape) {
+				shape.attr(attr);
+				if (node_cb) { node_cb(shape) }
+			}
+		});
+		 
+	  }
     }
   } catch (error) {
     console.error(error);

@@ -24,6 +24,10 @@ Nothing fancy but it gives you a starting point.
 ### To-do
 - SVG group to Raphaël set conversion
 - line recognition
-- text recognition
+- ~~text recognition~~ TEXT RECOGNITION ADDED WOOOOOOOO
 - image recognition
 - writing tests (yes I've been lazy :-)
+
+### Text Recognition DISCLAIMER
+This version of the plugin assumes that the SVG input is from Inkscape and contains the tspan tag<br/>
+I will add a more generic workthrough soon. 
